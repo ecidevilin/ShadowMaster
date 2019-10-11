@@ -106,6 +106,9 @@ Shader "Lightweight Render Pipeline/Lit"
             // GPU Instancing
             #pragma multi_compile_instancing
 
+
+			#pragma multi_compile _ _EXP_VARIANCE_SHADOW_MAPS _VARIANCE_SHADOW_MAPS
+
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
