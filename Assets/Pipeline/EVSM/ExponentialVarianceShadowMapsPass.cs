@@ -12,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
     public class ExponentialVarianceShadowMapsPass : ScriptableRenderPass
     {
         bool _Enabled;
-        float _EVSMExponent;
+        Vector2 _EVSMExponent;
         ShadowMapsType _ShadowMapsType;
 
         const string _FilterEVSM = "Filter EVSM";
@@ -67,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
                     CoreUtils.SetKeyword(cmd, kvp.Value, kvp.Key == _ShadowMapsType);
                 }
 
-                cmd.SetGlobalFloat("_EVSMExponent", _EVSMExponent);
+                cmd.SetGlobalVector("_EVSMExponent", _EVSMExponent);
                 CoreUtils.SetKeyword(cmd, _FilterKeyword, true);
                 cmd.GetTemporaryRT(_FilteredMailLightEVSMHandle.id, _MailLightEVSMDescriptor);
                 cmd.GetTemporaryRT(_TmpFilteredMailLightEVSMHandle.id, _MailLightEVSMDescriptor);
@@ -91,9 +91,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                //for (int i = 2; i <= 2; i++)
+                //for (int i = 1; i <= 1; i++)
                 //{
-                //    cmd.SetGlobalVector("_HorizontalVertical", Vector2.right * i);
+                //    int p = 1 << i;
+                //    cmd.SetGlobalVector("_HorizontalVertical", Vector2.right * p);
                 //    SetRenderTarget(cmd, srti, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, Color.black, TextureDimension.Tex2D);
                 //    cmd.SetGlobalTexture("_MainTex", drti);
                 //    cmd.Blit(drti, srti, _Material);
@@ -101,7 +102,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
                 //    context.ExecuteCommandBuffer(cmd);
                 //    cmd.Clear();
 
-                //    cmd.SetGlobalVector("_HorizontalVertical", Vector2.up * i);
+                //    cmd.SetGlobalVector("_HorizontalVertical", Vector2.up * p);
                 //    SetRenderTarget(cmd, drti, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, Color.black, TextureDimension.Tex2D);
                 //    cmd.SetGlobalTexture("_MainTex", srti);
                 //    cmd.Blit(srti, drti, _Material);
@@ -115,7 +116,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
             CommandBufferPool.Release(cmd);
         }
 
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthAttachmentHandle, bool enabled, float exponent, ShadowMapsType smType)
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthAttachmentHandle, bool enabled, int exponentPos, int exponentNeg, ShadowMapsType smType)
         {
             _ShadowMapsType = smType;
             if (_ShadowMapsType == ShadowMapsType.EVSM)
@@ -132,7 +133,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
             baseDescriptor.autoGenerateMips = true;
             baseDescriptor.useMipMap = true;
             _MailLightEVSMDescriptor = baseDescriptor;
-            _EVSMExponent = exponent;
+            _EVSMExponent = new Vector2(exponentPos, exponentNeg);
         }
 
         public override void FrameCleanup(CommandBuffer cmd)

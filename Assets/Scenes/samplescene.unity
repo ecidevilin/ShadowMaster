@@ -818,7 +818,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfc59b4413010a14db77428c57c62282, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _EVSMExponent: 1
+  _EVSMExponentPos: 40
+  _EVSMExponentNeg: 50
   _ShadowMapsType: 1
 --- !u!1 &1904166338
 GameObject:
@@ -920,7 +921,7 @@ Light:
   m_SpotAngle: 30
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 1
+    m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
