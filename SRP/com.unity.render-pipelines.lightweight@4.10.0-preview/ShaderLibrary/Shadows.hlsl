@@ -118,6 +118,10 @@ half SampleScreenSpaceShadowmap(float4 shadowCoord)
     return attenuation;
 }
 
+//#define _EVSM_LOG_FILTER
+float2 _EVSMExponent;
+SamplerState sm_linear_clamp_sampler;
+
 float ChebyshevUpperBound(float2 moments, float mean, float minV)
 {
 	float v = moments.y - moments.x * moments.x;
@@ -126,10 +130,6 @@ float ChebyshevUpperBound(float2 moments, float mean, float minV)
 	float p = v / (v + d * d);
 	return max(mean > moments.x, p);
 }
-
-//#define _EVSM_LOG_FILTER
-float2 _EVSMExponent;
-SamplerState sm_linear_clamp_sampler;
 
 real SampleShadowmap(float4 shadowCoord, TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), ShadowSamplingData samplingData, half shadowStrength, bool isPerspectiveProjection = true)
 {

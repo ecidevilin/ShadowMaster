@@ -818,8 +818,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfc59b4413010a14db77428c57c62282, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _EVSMExponentPos: 40
-  _EVSMExponentNeg: 50
+  _EVSMExponentPos: 10
+  _EVSMExponentNeg: 20
   _ShadowMapsType: 1
 --- !u!1 &1904166338
 GameObject:
