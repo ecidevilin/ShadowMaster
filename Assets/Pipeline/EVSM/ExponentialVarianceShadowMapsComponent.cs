@@ -19,7 +19,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
         public ScriptableRenderPass GetPassToEnqueue(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthAttachmentHandle)
         {
             ExponentialVarianceShadowMapsPass pass = new ExponentialVarianceShadowMapsPass();
-            pass.Setup(baseDescriptor, depthAttachmentHandle, isActiveAndEnabled, _EVSMExponentPos, _EVSMExponentNeg, _ShadowMapsType);
+            pass._Enabled = isActiveAndEnabled;
+            pass._EVSMExponent = new Vector2(_EVSMExponentPos, _EVSMExponentNeg);
+            pass._ShadowMapsType = _ShadowMapsType;
+            pass.Setup(baseDescriptor, depthAttachmentHandle);
             return pass;
         }
     }

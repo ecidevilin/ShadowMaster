@@ -11,9 +11,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
     }
     public class ExponentialVarianceShadowMapsPass : ScriptableRenderPass
     {
-        bool _Enabled;
-        Vector2 _EVSMExponent;
-        ShadowMapsType _ShadowMapsType;
+        public bool _Enabled;
+        public Vector2 _EVSMExponent;
+        public ShadowMapsType _ShadowMapsType;
 
         const string _FilterEVSM = "Filter EVSM";
         const string _ShaderPath = "Hidden/FilterEVSM";
@@ -116,9 +116,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
             CommandBufferPool.Release(cmd);
         }
 
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthAttachmentHandle, bool enabled, int exponentPos, int exponentNeg, ShadowMapsType smType)
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthAttachmentHandle)
         {
-            _ShadowMapsType = smType;
             if (_ShadowMapsType == ShadowMapsType.EVSM)
             {
                 _SMFormat = RenderTextureFormat.ARGBFloat;
@@ -127,13 +126,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
             {
                 _SMFormat = RenderTextureFormat.RGFloat;
             }
-            _Enabled = enabled;
             baseDescriptor.depthBufferBits = 0;
             baseDescriptor.colorFormat = _SMFormat;
             baseDescriptor.autoGenerateMips = true;
             baseDescriptor.useMipMap = true;
             _MailLightEVSMDescriptor = baseDescriptor;
-            _EVSMExponent = new Vector2(exponentPos, exponentNeg);
         }
 
         public override void FrameCleanup(CommandBuffer cmd)
