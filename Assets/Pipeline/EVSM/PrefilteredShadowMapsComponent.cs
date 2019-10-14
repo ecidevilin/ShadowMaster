@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
 {
-    public class ExponentialVarianceShadowMapsComponent : MonoBehaviour, IAfterDepthPrePass
+    public class PrefilteredShadowMapsComponent : MonoBehaviour, IAfterDepthPrePass
     {
         [Range(1,45)]
         [SerializeField] private int _EVSMExponentPos = 10;
@@ -19,7 +19,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
 
         public ScriptableRenderPass GetPassToEnqueue(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthAttachmentHandle)
         {
-            ExponentialVarianceShadowMapsPass pass = new ExponentialVarianceShadowMapsPass();
+            PrefilteredShadowMapsPass pass = new PrefilteredShadowMapsPass();
             pass._Enabled = isActiveAndEnabled;
             pass._EVSMExponent = new Vector2(_EVSMExponentPos, _EVSMExponentNeg);
             pass._ShadowMapsType = _ShadowMapsType;

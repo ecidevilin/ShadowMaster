@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
         Single,
     }
 
-    public class ExponentialVarianceShadowMapsPass : ScriptableRenderPass
+    public class PrefilteredShadowMapsPass : ScriptableRenderPass
     {
         public bool _Enabled;
         public Vector2 _EVSMExponent;
@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
         public ShadowMapsPrecision _ShadowMapsPrecision;
 
         const string _FilterEVSM = "Filter EVSM";
-        const string _ShaderPath = "Hidden/FilterEVSM";
+        const string _ShaderPath = "Hidden/FilterShadowMaps";
 
         const string _KeywordFirstFilter = "_FIRST_FILTERING";
         const string _KeywordShadowMapsPrecision = "_SHADOW_MAPS_FLOAT";
@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
         Material _Material;
 
 
-        public ExponentialVarianceShadowMapsPass()
+        public PrefilteredShadowMapsPass()
         {
             _Material = CoreUtils.CreateEngineMaterial(_ShaderPath);
             _FilteredMailLightSMHandle.Init(_UniformFilteredMainLightSM);

@@ -1,4 +1,4 @@
-Shader "Hidden/Lightweight Render Pipeline/ScreenSpaceShadows"
+Shader "Hidden/Lightweight Render Pipeline/ScreenSpaceFilteredShadowMaps"
 {
     SubShader
     {
@@ -17,7 +17,7 @@ Shader "Hidden/Lightweight Render Pipeline/ScreenSpaceShadows"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
         #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
-        #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Shadows.hlsl"
+        #include "PrefilteredShadowMaps.hlsl"
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
         TEXTURE2D_ARRAY_FLOAT(_CameraDepthTexture);
@@ -82,20 +82,22 @@ Shader "Hidden/Lightweight Render Pipeline/ScreenSpaceShadows"
             // Screenspace shadowmap is only used for directional lights which use orthogonal projection.
             ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
             half shadowStrength = GetMainLightShadowStrength();
-            return SampleShadowmap(coords, TEXTURE2D_PARAM(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowSamplingData, shadowStrength, false);
+            return SampleFilteredSM(coords, TEXTURE2D_PARAM(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowSamplingData, shadowStrength, false);
         }
 
         ENDHLSL
 
         Pass
         {
-            Name "ScreenSpaceShadows"
+            Name "ScreenSpaceFilteredShadowMaps"
             ZTest Always
             ZWrite Off
             Cull Off
 
             HLSLPROGRAM
             #pragma multi_compile _ _SHADOWS_SOFT
+			#pragma multi_compile _ _EXP_VARIANCE_SHADOW_MAPS _VARIANCE_SHADOW_MAPS
+			#pragma multi_compile _ _SHADOW_MAPS_FLOAT
 
             #pragma vertex   Vertex
             #pragma fragment Fragment

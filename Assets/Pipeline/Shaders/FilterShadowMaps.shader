@@ -1,4 +1,4 @@
-﻿Shader "Hidden/FilterEVSM"
+﻿Shader "Hidden/FilterShadowMaps"
 {
 	Properties
 	{
@@ -16,7 +16,7 @@
 		#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 		#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 		#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
-		#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Shadows.hlsl"
+		#include "PrefilteredShadowMaps.hlsl"
 
 		#pragma multi_compile _ _FIRST_FILTERING
 

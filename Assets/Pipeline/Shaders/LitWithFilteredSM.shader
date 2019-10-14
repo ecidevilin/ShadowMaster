@@ -1,4 +1,4 @@
-Shader "Lightweight Render Pipeline/Lit"
+Shader "Lightweight Render Pipeline/LitWithFilteredSM"
 {
     Properties
     {
@@ -106,11 +106,16 @@ Shader "Lightweight Render Pipeline/Lit"
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            #pragma vertex LitPassVertex
-            #pragma fragment LitPassFragment
+			//--------------------------------------
+			// Shadow Maps
+			#pragma multi_compile _ _EXP_VARIANCE_SHADOW_MAPS _VARIANCE_SHADOW_MAPS
+			#pragma multi_compile _ _SHADOW_MAPS_FLOAT
 
-            #include "LitInput.hlsl"
-            #include "LitForwardPass.hlsl"
+            #pragma vertex LitPassVertex
+            #pragma fragment LitWithFilteredSMPassFragment
+
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/LitInput.hlsl"
+            #include "LitWithFilteredSMForwardPass.hlsl"
             ENDHLSL
         }
 
@@ -141,8 +146,8 @@ Shader "Lightweight Render Pipeline/Lit"
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
-            #include "LitInput.hlsl"
-            #include "ShadowCasterPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/ShadowCasterPass.hlsl"
             ENDHLSL
         }
 
@@ -173,8 +178,9 @@ Shader "Lightweight Render Pipeline/Lit"
             // GPU Instancing
             #pragma multi_compile_instancing
 
-            #include "LitInput.hlsl"
-            #include "DepthOnlyPass.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/DepthOnlyPass.hlsl"
             ENDHLSL
         }
 
@@ -201,8 +207,8 @@ Shader "Lightweight Render Pipeline/Lit"
 
             #pragma shader_feature _SPECGLOSSMAP
 
-            #include "LitInput.hlsl"
-            #include "LitMetaPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.lightweight/Shaders/LitMetaPass.hlsl"
 
             ENDHLSL
         }
