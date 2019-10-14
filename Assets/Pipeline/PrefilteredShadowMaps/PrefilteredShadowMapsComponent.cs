@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
 {
-    public class PrefilteredShadowMapsComponent : MonoBehaviour, IAfterDepthPrePass
+    public class PrefilteredShadowMapsComponent : MonoBehaviour, IAfterMainLightShadowCasterPass
     {
         [Range(1,45)]
         [SerializeField] private int _EVSMExponentPos = 10;
@@ -17,14 +17,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         }
 
-        public ScriptableRenderPass GetPassToEnqueue(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthAttachmentHandle)
+        public ScriptableRenderPass GetPassToEnqueue(RenderTextureDescriptor baseDescriptor, RenderTargetHandle mainLightShadowmapHandle)
         {
             PrefilterShadowMapsPass pass = new PrefilterShadowMapsPass();
             pass._Enabled = isActiveAndEnabled;
             pass._EVSMExponent = new Vector2(_EVSMExponentPos, _EVSMExponentNeg);
             pass._ShadowMapsType = _ShadowMapsType;
             pass._ShadowMapsPrecision = _ShadowMapPrecision;
-            pass.Setup(baseDescriptor, depthAttachmentHandle);
+            pass.Setup(baseDescriptor, mainLightShadowmapHandle);
             return pass;
         }
     }

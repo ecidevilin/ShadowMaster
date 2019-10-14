@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
 {
     public enum ShadowMapsType
     {
@@ -159,7 +159,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBufferPool.Release(cmd);
         }
 
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthAttachmentHandle)
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle mainLightShadowmapHandle)
         {
             if (_ShadowMapsType == ShadowMapsType.EVSM)
             {

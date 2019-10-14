@@ -1,14 +1,15 @@
 ﻿using System;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering.LightweightPipeline;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline
+
+namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
 {
-    public class PipelineSetup : MonoBehaviour, IRendererSetup
+    public class RenderPipelineSetup : MonoBehaviour, IRendererSetup
     {
         private DepthOnlyPass m_DepthOnlyPass;
         private MainLightShadowCasterPass m_MainLightShadowCasterPass;
-        private PrefilterShadowMapsPass m_PrefilterMainLightShadowMapsPass;
         private AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         private SetupForwardRenderingPass m_SetupForwardRenderingPass;
         private ScreenSpaceShadowResolvePass m_ScreenSpaceShadowResolvePass;
@@ -122,7 +123,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 mainLightShadows = m_MainLightShadowCasterPass.Setup(MainLightShadowmap, ref renderingData);
                 if (mainLightShadows)
+                {
                     renderer.EnqueuePass(m_MainLightShadowCasterPass);
+                    foreach (var pass in camera.GetComponents<IAfterMainLightShadowCasterPass>())
+                        renderer.EnqueuePass(pass.GetPassToEnqueue(baseDescriptor, MainLightShadowmap));
+                }
             }
 
             if (renderingData.shadowData.supportsAdditionalLightShadows)
