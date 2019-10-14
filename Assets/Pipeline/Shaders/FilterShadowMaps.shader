@@ -100,7 +100,7 @@
 			v4 = exp(v4);
 			v5 = exp(v5);
 			v6 = exp(v6);
-			float4 ev = v0 * coeff7[0] + v1 * coeff7[1] + v2 * coeff7[2] + v3 * coeff7[3] + v4 * coeff7[4] + v5 * coeff7[5] + v6 * coeff7[6];
+			float4 ev = v0 * coeff7[0] + v1 * coeff7[1] + v2 * coeff7[2] + v3 * coeff7[3] + v4 * coeff7[4] + v5 * coeff7[5] + v6 * coeff7[6];;
 			ev.y = -ev.y;
 			return ev;
 #else
