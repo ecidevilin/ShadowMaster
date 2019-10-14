@@ -108,6 +108,7 @@ Shader "Lightweight Render Pipeline/Lit"
 
 
 			#pragma multi_compile _ _EXP_VARIANCE_SHADOW_MAPS _VARIANCE_SHADOW_MAPS
+			#pragma multi_compile _ _SHADOW_MAPS_FLOAT
 
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment

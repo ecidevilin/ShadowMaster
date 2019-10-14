@@ -23,7 +23,11 @@
 		SamplerState sm_point_clamp_sampler;
 		float4 _MainLightShadowmapTexture_TexelSize;
 
+#ifdef _SHADOW_MAPS_FLOAT
 		TEXTURE2D_FLOAT(_MainTex);
+#else
+		TEXTURE2D_HALF(_MainTex);
+#endif
 		SAMPLER(sampler_MainTex);
 		float4 _MainTex_TexelSize;
 
@@ -174,6 +178,7 @@
 				#pragma vertex   Vertex
 				#pragma fragment Fragment
 				#pragma multi_compile _ _EXP_VARIANCE_SHADOW_MAPS _VARIANCE_SHADOW_MAPS
+				#pragma multi_compile _ _SHADOW_MAPS_FLOAT
 				ENDHLSL
 		}
     }
