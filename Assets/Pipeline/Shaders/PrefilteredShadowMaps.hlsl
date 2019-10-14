@@ -13,7 +13,6 @@ TEXTURE2D_HALF(_FilteredMainLightSM);
 #endif
 SAMPLER(sampler_FilteredMainLightSM);
 //#define _EVSM_LOG_FILTER
-SamplerState sm_linear_clamp_sampler;
 
 
 float ChebyshevUpperBound(float2 moments, float mean, float minV)
@@ -30,7 +29,7 @@ real SampleFilteredSM(float4 shadowCoord, TEXTURE2D_SHADOW_ARGS(ShadowMap, sampl
     if (isPerspectiveProjection)
         shadowCoord.xyz /= shadowCoord.w;
 #ifdef _EXP_VARIANCE_SHADOW_MAPS
-	float4 evsm = SAMPLE_TEXTURE2D(_FilteredMainLightSM, sm_linear_clamp_sampler, shadowCoord.xy);
+	float4 evsm = SAMPLE_TEXTURE2D(_FilteredMainLightSM, sampler_FilteredMainLightSM, shadowCoord.xy);
 #ifdef _EVSM_LOG_FILTER
 	evsm = exp(evsm);
 	evsm.y = -evsm.y;
@@ -56,7 +55,7 @@ real SampleFilteredSM(float4 shadowCoord, TEXTURE2D_SHADOW_ARGS(ShadowMap, sampl
 	// Shadow coords that fall out of the light frustum volume must always return attenuation 1.0
 	return BEYOND_SHADOW_FAR(shadowCoord) ? 1.0 : attenuation;
 #elif defined(_VARIANCE_SHADOW_MAPS)
-	float2 vsm = SAMPLE_TEXTURE2D(_FilteredMainLightSM, sm_linear_clamp_sampler, shadowCoord.xy).rg;
+	float2 vsm = SAMPLE_TEXTURE2D(_FilteredMainLightSM, sampler_FilteredMainLightSM, shadowCoord.xy).rg;
 	float attenuation = ChebyshevUpperBound(vsm, shadowCoord.z, 0.000001f);
 	
 	attenuation = LerpWhiteTo(attenuation, shadowStrength);

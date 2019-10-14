@@ -113,13 +113,13 @@
 #endif
 #else
 			float2 txs = _MainTex_TexelSize.xy * _HorizontalVertical;
-			float4 s0 = SAMPLE_TEXTURE2D(_MainTex, sm_linear_clamp_sampler, saturate(uv - 3 * txs));
-			float4 s1 = SAMPLE_TEXTURE2D(_MainTex, sm_linear_clamp_sampler, saturate(uv - 2 * txs));
-			float4 s2 = SAMPLE_TEXTURE2D(_MainTex, sm_linear_clamp_sampler, saturate(uv - 1 * txs));
-			float4 s3 = SAMPLE_TEXTURE2D(_MainTex, sm_linear_clamp_sampler, uv);
-			float4 s4 = SAMPLE_TEXTURE2D(_MainTex, sm_linear_clamp_sampler, saturate(uv + 1 * txs));
-			float4 s5 = SAMPLE_TEXTURE2D(_MainTex, sm_linear_clamp_sampler, saturate(uv + 2 * txs));
-			float4 s6 = SAMPLE_TEXTURE2D(_MainTex, sm_linear_clamp_sampler, saturate(uv + 3 * txs));
+			float4 s0 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, saturate(uv - 3 * txs));
+			float4 s1 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, saturate(uv - 2 * txs));
+			float4 s2 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, saturate(uv - 1 * txs));
+			float4 s3 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv);
+			float4 s4 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, saturate(uv + 1 * txs));
+			float4 s5 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, saturate(uv + 2 * txs));
+			float4 s6 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, saturate(uv + 3 * txs));
 #ifndef _EVSM_LOG_FILTER
 			return s0 * coeff7[0] + s1 * coeff7[1] + s2 * coeff7[2] + s3 * coeff7[3] + s4 * coeff7[4] + s5 * coeff7[5] + s6 * coeff7[6];
 #else
@@ -146,13 +146,13 @@
 			return float4(e, v, e, v);
 #else
 			float2 txs = _MainTex_TexelSize.xy * _HorizontalVertical;
-			float2 s0 = SAMPLE_TEXTURE2D(_MainTex, sm_linear_clamp_sampler, saturate(uv - 3 * txs)).rg;
-			float2 s1 = SAMPLE_TEXTURE2D(_MainTex, sm_linear_clamp_sampler, saturate(uv - 2 * txs)).rg;
-			float2 s2 = SAMPLE_TEXTURE2D(_MainTex, sm_linear_clamp_sampler, saturate(uv - 1 * txs)).rg;
-			float2 s3 = SAMPLE_TEXTURE2D(_MainTex, sm_linear_clamp_sampler, uv).rg;
-			float2 s4 = SAMPLE_TEXTURE2D(_MainTex, sm_linear_clamp_sampler, saturate(uv + 1 * txs)).rg;
-			float2 s5 = SAMPLE_TEXTURE2D(_MainTex, sm_linear_clamp_sampler, saturate(uv + 2 * txs)).rg;
-			float2 s6 = SAMPLE_TEXTURE2D(_MainTex, sm_linear_clamp_sampler, saturate(uv + 3 * txs)).rg;
+			float2 s0 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, saturate(uv - 3 * txs)).rg;
+			float2 s1 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, saturate(uv - 2 * txs)).rg;
+			float2 s2 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, saturate(uv - 1 * txs)).rg;
+			float2 s3 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, uv).rg;
+			float2 s4 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, saturate(uv + 1 * txs)).rg;
+			float2 s5 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, saturate(uv + 2 * txs)).rg;
+			float2 s6 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, saturate(uv + 3 * txs)).rg;
 			float2 ev = s0 * coeff7[0] + s1 * coeff7[1] + s2 * coeff7[2] + s3 * coeff7[3] + s4 * coeff7[4] + s5 * coeff7[5] + s6 * coeff7[6];
 			return ev.xyxy;
 #endif

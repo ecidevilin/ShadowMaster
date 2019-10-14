@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
+namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public enum ShadowMapsType
     {
@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
         Single,
     }
 
-    public class PrefilteredShadowMapsPass : ScriptableRenderPass
+    public class PrefilterShadowMapsPass : ScriptableRenderPass
     {
         public bool _Enabled;
         public Vector2 _EVSMExponent;
@@ -50,11 +50,35 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
         Material _Material;
 
 
-        public PrefilteredShadowMapsPass()
+        public PrefilterShadowMapsPass()
         {
             _Material = CoreUtils.CreateEngineMaterial(_ShaderPath);
             _FilteredMailLightSMHandle.Init(_UniformFilteredMainLightSM);
             _TmpMailLightSMHandle.Init(_UniformTmpMainLightSM);
+        }
+
+        private bool CheckEnabled(ref RenderingData renderingData)
+        {
+            if (!_Enabled)
+            {
+                return false;
+            }
+            if (!renderingData.shadowData.supportsSoftShadows)
+            {
+                return false;
+            }
+            int shadowLightIndex = renderingData.lightData.mainLightIndex;
+            if (shadowLightIndex == -1)
+            {
+                return false;
+            }
+            VisibleLight shadowLight = renderingData.lightData.visibleLights[shadowLightIndex];
+            Light light = shadowLight.light;
+            if (light.shadows != LightShadows.Soft)
+            {
+                return false;
+            }
+            return true;
         }
 
         public override void Execute(ScriptableRenderer renderer, ScriptableRenderContext context, ref RenderingData renderingData)
@@ -67,7 +91,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
             _MailLightEVSMDescriptor.width = renderingData.shadowData.mainLightShadowmapWidth;
             _MailLightEVSMDescriptor.height = renderingData.shadowData.mainLightShadowmapHeight;
             CommandBuffer cmd = CommandBufferPool.Get(_FilterEVSM);
-            if (!_Enabled)
+            if (!CheckEnabled(ref renderingData))
             {
                 foreach (var kvp in _TypeKeywords)
                 {
@@ -88,8 +112,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
 
                 cmd.SetGlobalVector(_UniformEVSMExponent, _EVSMExponent);
                 CoreUtils.SetKeyword(cmd, _KeywordFirstFilter, true);
-                cmd.GetTemporaryRT(_FilteredMailLightSMHandle.id, _MailLightEVSMDescriptor);
-                cmd.GetTemporaryRT(_TmpMailLightSMHandle.id, _MailLightEVSMDescriptor);
+                cmd.GetTemporaryRT(_FilteredMailLightSMHandle.id, _MailLightEVSMDescriptor, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(_TmpMailLightSMHandle.id, _MailLightEVSMDescriptor, FilterMode.Bilinear);
                 RenderTargetIdentifier srti = _TmpMailLightSMHandle.Identifier();
                 RenderTargetIdentifier drti = _FilteredMailLightSMHandle.Identifier();
 

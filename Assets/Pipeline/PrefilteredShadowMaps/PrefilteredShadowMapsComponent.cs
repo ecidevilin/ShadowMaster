@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
+namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public class PrefilteredShadowMapsComponent : MonoBehaviour, IAfterDepthPrePass
     {
@@ -19,7 +19,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
 
         public ScriptableRenderPass GetPassToEnqueue(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthAttachmentHandle)
         {
-            PrefilteredShadowMapsPass pass = new PrefilteredShadowMapsPass();
+            PrefilterShadowMapsPass pass = new PrefilterShadowMapsPass();
             pass._Enabled = isActiveAndEnabled;
             pass._EVSMExponent = new Vector2(_EVSMExponentPos, _EVSMExponentNeg);
             pass._ShadowMapsType = _ShadowMapsType;
