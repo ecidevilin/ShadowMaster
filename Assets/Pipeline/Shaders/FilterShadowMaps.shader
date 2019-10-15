@@ -13,13 +13,9 @@
 		#pragma exclude_renderers d3d11_9x
 		//Keep compiler quiet about Shadows.hlsl.
 		#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-		#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 		#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
-		#include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Core.hlsl"
 		#include "PrefilteredShadowMaps.hlsl"
-
-		#pragma multi_compile _ _FIRST_FILTERING
-
+		
 		SamplerState sm_point_clamp_sampler;
 		float4 _MainLightShadowmapTexture_TexelSize;
 
@@ -48,7 +44,7 @@
 		};
 
 		Varyings Vertex(Attributes input)
-        {
+		{
 			Varyings output;
 			UNITY_SETUP_INSTANCE_ID(input);
 			UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
@@ -56,11 +52,11 @@
 			output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
 			output.uv = input.texcoord;
 
-            return output;
-        }
+			return output;
+		}
 
 		static const float coeff7[7] = { 0.00598,0.060626,0.241843,0.383103,0.241843,0.060626,0.00598};
-		
+
 		float4 conv2Taps(float w0, float4 x, float w1, float4 y)
 		{
 			return (x + log(w0 + w1 * exp(y - x)));
@@ -133,19 +129,18 @@
 			f0 = conv2Taps(1.0, f1, coeff7[3], s3);
 			return conv2Taps(1.0, f0, 1.0, f1);
 #else //defined(_EXP_VARIANCE_SHADOW_MAPS) && defined(_EVSM_LOG_FILTER)
-
 			return s0 * coeff7[0] + s1 * coeff7[1] + s2 * coeff7[2] + s3 * coeff7[3] + s4 * coeff7[4] + s5 * coeff7[5] + s6 * coeff7[6];
 #endif //defined(_EXP_VARIANCE_SHADOW_MAPS) && defined(_EVSM_LOG_FILTER)
 #endif //_FIRST_FILTERING
-			
+
 		}
 
-        half4 Fragment(Varyings input) : SV_Target
-        {
+		half4 Fragment(Varyings input) : SV_Target
+		{
 			UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            return gaussian1D7Taps(input.uv);
-        }
-        ENDHLSL
+			return gaussian1D7Taps(input.uv);
+		}
+		ENDHLSL
 		Pass
 		{
 				Name "FilterEVSM"
@@ -159,7 +154,8 @@
 				#pragma fragment Fragment
 				#pragma multi_compile _ _EXP_VARIANCE_SHADOW_MAPS _VARIANCE_SHADOW_MAPS
 				#pragma multi_compile _ _SHADOW_MAPS_FLOAT
+				#pragma multi_compile _ _FIRST_FILTERING
 				ENDHLSL
 		}
-    }
+	}
 }

@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
         [SerializeField] private int _EVSMExponentNeg = 20;
         [SerializeField] private ShadowMapsType _ShadowMapsType = ShadowMapsType.VSM;
         [SerializeField] private ShadowMapsPrecision _ShadowMapPrecision = ShadowMapsPrecision.Half;
+        [SerializeField] private bool _UseMipmaps = false;
         void OnEnable()
         {
 
@@ -24,6 +25,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
             pass._EVSMExponent = new Vector2(_EVSMExponentPos, _EVSMExponentNeg);
             pass._ShadowMapsType = _ShadowMapsType;
             pass._ShadowMapsPrecision = _ShadowMapPrecision;
+            pass._UseMipmaps = _UseMipmaps;
             pass.Setup(baseDescriptor, mainLightShadowmapHandle);
             return pass;
         }

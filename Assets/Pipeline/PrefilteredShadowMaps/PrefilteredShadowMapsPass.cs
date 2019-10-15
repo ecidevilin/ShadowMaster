@@ -22,6 +22,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
         public Vector2 _EVSMExponent;
         public ShadowMapsType _ShadowMapsType;
         public ShadowMapsPrecision _ShadowMapsPrecision;
+        public bool _UseMipmaps;
 
         const string _FilterEVSM = "Filter EVSM";
         const string _ShaderPath = "Hidden/FilterShadowMaps";
@@ -42,9 +43,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
             { ShadowMapsType.EVSM, "_EXP_VARIANCE_SHADOW_MAPS"},
         };
 
-        RenderTargetHandle _FilteredMailLightSMHandle;
-        RenderTargetHandle _TmpMailLightSMHandle;
-        RenderTextureDescriptor _MailLightEVSMDescriptor;
+        RenderTargetHandle _FilteredMainLightSMHandle;
+        RenderTargetHandle _TmpMainLightSMHandle;
+        RenderTextureDescriptor _MainLightFilteredSMDescriptor;
         RenderTextureFormat _SMFormat;
 
         Material _Material;
@@ -53,8 +54,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
         public PrefilterShadowMapsPass()
         {
             _Material = CoreUtils.CreateEngineMaterial(_ShaderPath);
-            _FilteredMailLightSMHandle.Init(_UniformFilteredMainLightSM);
-            _TmpMailLightSMHandle.Init(_UniformTmpMainLightSM);
+            _FilteredMainLightSMHandle.Init(_UniformFilteredMainLightSM);
+            _TmpMainLightSMHandle.Init(_UniformTmpMainLightSM);
         }
 
         private bool CheckEnabled(ref RenderingData renderingData)
@@ -88,8 +89,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
                 throw new ArgumentException("renderer");
             }
             
-            _MailLightEVSMDescriptor.width = renderingData.shadowData.mainLightShadowmapWidth;
-            _MailLightEVSMDescriptor.height = renderingData.shadowData.mainLightShadowmapHeight;
+            _MainLightFilteredSMDescriptor.width = renderingData.shadowData.mainLightShadowmapWidth;
+            _MainLightFilteredSMDescriptor.height = renderingData.shadowData.mainLightShadowmapHeight;
             CommandBuffer cmd = CommandBufferPool.Get(_FilterEVSM);
             if (!CheckEnabled(ref renderingData))
             {
@@ -111,15 +112,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
                 CoreUtils.SetKeyword(cmd, _KeywordShadowMapsPrecision, _ShadowMapsPrecision == ShadowMapsPrecision.Single);
 
                 cmd.SetGlobalVector(_UniformEVSMExponent, _EVSMExponent);
+                cmd.GetTemporaryRT(_FilteredMainLightSMHandle.id, _MainLightFilteredSMDescriptor, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(_TmpMainLightSMHandle.id, _MainLightFilteredSMDescriptor, FilterMode.Bilinear);
+                RenderTargetIdentifier srti = _TmpMainLightSMHandle.Identifier();
+                RenderTargetIdentifier drti = _FilteredMainLightSMHandle.Identifier();
+
                 CoreUtils.SetKeyword(cmd, _KeywordFirstFilter, true);
-                cmd.GetTemporaryRT(_FilteredMailLightSMHandle.id, _MailLightEVSMDescriptor, FilterMode.Bilinear);
-                cmd.GetTemporaryRT(_TmpMailLightSMHandle.id, _MailLightEVSMDescriptor, FilterMode.Bilinear);
-                RenderTargetIdentifier srti = _TmpMailLightSMHandle.Identifier();
-                RenderTargetIdentifier drti = _FilteredMailLightSMHandle.Identifier();
 
                 cmd.SetGlobalVector(_UniformHorizontalVertical, Vector2.right);
                 SetRenderTarget(cmd, srti, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, Color.black, TextureDimension.Tex2D);
-                cmd.SetGlobalTexture(_UniformMainTex, srti);
                 cmd.Blit(srti, srti, _Material);
 
                 context.ExecuteCommandBuffer(cmd);
@@ -127,6 +128,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
                 
                 CoreUtils.SetKeyword(cmd, _KeywordFirstFilter, false);
 
+                cmd.SetGlobalTexture(_UniformMainTex, srti);
                 cmd.SetGlobalVector(_UniformHorizontalVertical, Vector2.up);
                 SetRenderTarget(cmd, drti, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color, Color.black, TextureDimension.Tex2D);
                 cmd.Blit(srti, drti, _Material);
@@ -185,24 +187,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
             }
             baseDescriptor.depthBufferBits = 0;
             baseDescriptor.colorFormat = _SMFormat;
-            baseDescriptor.autoGenerateMips = true;
-            baseDescriptor.useMipMap = true;
-            _MailLightEVSMDescriptor = baseDescriptor;
+            baseDescriptor.autoGenerateMips = _UseMipmaps;
+            baseDescriptor.useMipMap = _UseMipmaps;
+            _MainLightFilteredSMDescriptor = baseDescriptor;
         }
 
         public override void FrameCleanup(CommandBuffer cmd)
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
-            if (_FilteredMailLightSMHandle != RenderTargetHandle.CameraTarget)
+            if (_FilteredMainLightSMHandle != RenderTargetHandle.CameraTarget)
             {
-                cmd.ReleaseTemporaryRT(_FilteredMailLightSMHandle.id);
-                _FilteredMailLightSMHandle = RenderTargetHandle.CameraTarget;
+                cmd.ReleaseTemporaryRT(_FilteredMainLightSMHandle.id);
+                _FilteredMainLightSMHandle = RenderTargetHandle.CameraTarget;
             }
-            if (_TmpMailLightSMHandle != RenderTargetHandle.CameraTarget)
+            if (_TmpMainLightSMHandle != RenderTargetHandle.CameraTarget)
             {
-                cmd.ReleaseTemporaryRT(_TmpMailLightSMHandle.id);
-                _TmpMailLightSMHandle = RenderTargetHandle.CameraTarget;
+                cmd.ReleaseTemporaryRT(_TmpMainLightSMHandle.id);
+                _TmpMainLightSMHandle = RenderTargetHandle.CameraTarget;
             }
             base.FrameCleanup(cmd);
         }

@@ -823,6 +823,7 @@ MonoBehaviour:
   _EVSMExponentNeg: 10
   _ShadowMapsType: 1
   _ShadowMapPrecision: 1
+  _UseMipmaps: 0
 --- !u!114 &1687258588
 MonoBehaviour:
   m_ObjectHideFlags: 0
