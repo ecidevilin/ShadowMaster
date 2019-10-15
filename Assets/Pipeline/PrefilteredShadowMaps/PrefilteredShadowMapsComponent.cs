@@ -12,8 +12,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
         [SerializeField] private int _EVSMExponentNeg = 20;
         [SerializeField] private ShadowMapsType _ShadowMapsType = ShadowMapsType.VSM;
         [SerializeField] private ShadowMapsPrecision _ShadowMapPrecision = ShadowMapsPrecision.Half;
-        [Header("Mipmaps are disable when cascade is larger than one.")]
+        [Header("Mipmaps are disable when cascade is larger than one or LogFilterESM is used.")]
         [SerializeField] private bool _UseMipmaps = false;
+        [Header("Only for ESM.")]
+        [SerializeField] private bool _LogFilterESM = false;
         void OnEnable()
         {
 
@@ -27,6 +29,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
             pass._ShadowMapsType = _ShadowMapsType;
             pass._ShadowMapsPrecision = _ShadowMapPrecision;
             pass._UseMipmaps = _UseMipmaps;
+            pass._LogFilterESM = _LogFilterESM;
             pass.Setup(baseDescriptor, mainLightShadowmapHandle);
             return pass;
         }

@@ -16,7 +16,6 @@
 		#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 		#include "PrefilteredShadowMaps.hlsl"
 		
-		SamplerState sm_point_clamp_sampler;
 		float4 _MainLightShadowmapTexture_TexelSize;
 
 #ifdef _SHADOW_MAPS_FLOAT
@@ -73,7 +72,7 @@
 			float s4 = SAMPLE_TEXTURE2D(_MainLightShadowmapTexture, sm_point_clamp_sampler, saturate(uv + 1 * txs)).r;
 			float s5 = SAMPLE_TEXTURE2D(_MainLightShadowmapTexture, sm_point_clamp_sampler, saturate(uv + 2 * txs)).r;
 			float s6 = SAMPLE_TEXTURE2D(_MainLightShadowmapTexture, sm_point_clamp_sampler, saturate(uv + 3 * txs)).r;
-#ifdef _EXP_VARIANCE_SHADOW_MAPS
+#if defined(_EXP_VARIANCE_SHADOW_MAPS) || defined(_EXPONENTIAL_SHADOW_MAPS)
 			s0 = s0 * 2.0f - 1.0f;
 			s1 = s1 * 2.0f - 1.0f;
 			s2 = s2 * 2.0f - 1.0f;
@@ -81,32 +80,44 @@
 			s4 = s4 * 2.0f - 1.0f;
 			s5 = s5 * 2.0f - 1.0f;
 			s6 = s6 * 2.0f - 1.0f;
-			float4 v0 = float4(s0, -s0, 2 * s0, -2 * s0) * _EVSMExponent.xyxy;
-			float4 v1 = float4(s1, -s1, 2 * s1, -2 * s1) * _EVSMExponent.xyxy;
-			float4 v2 = float4(s2, -s2, 2 * s2, -2 * s2) * _EVSMExponent.xyxy;
-			float4 v3 = float4(s3, -s3, 2 * s3, -2 * s3) * _EVSMExponent.xyxy;
-			float4 v4 = float4(s4, -s4, 2 * s4, -2 * s4) * _EVSMExponent.xyxy;
-			float4 v5 = float4(s5, -s5, 2 * s5, -2 * s5) * _EVSMExponent.xyxy;
-			float4 v6 = float4(s6, -s6, 2 * s6, -2 * s6) * _EVSMExponent.xyxy;
-#ifndef _EVSM_LOG_FILTER
-			v0 = exp(v0);
-			v1 = exp(v1);
-			v2 = exp(v2);
-			v3 = exp(v3);
-			v4 = exp(v4);
-			v5 = exp(v5);
-			v6 = exp(v6);
+#endif
+#ifdef _EXP_VARIANCE_SHADOW_MAPS
+			float4 v0 = exp(float4(s0, -s0, 2 * s0, -2 * s0) * _EVSMExponent.xyxy);
+			float4 v1 = exp(float4(s1, -s1, 2 * s1, -2 * s1) * _EVSMExponent.xyxy);
+			float4 v2 = exp(float4(s2, -s2, 2 * s2, -2 * s2) * _EVSMExponent.xyxy);
+			float4 v3 = exp(float4(s3, -s3, 2 * s3, -2 * s3) * _EVSMExponent.xyxy);
+			float4 v4 = exp(float4(s4, -s4, 2 * s4, -2 * s4) * _EVSMExponent.xyxy);
+			float4 v5 = exp(float4(s5, -s5, 2 * s5, -2 * s5) * _EVSMExponent.xyxy);
+			float4 v6 = exp(float4(s6, -s6, 2 * s6, -2 * s6) * _EVSMExponent.xyxy);
 			float4 ev = v0 * coeff7[0] + v1 * coeff7[1] + v2 * coeff7[2] + v3 * coeff7[3] + v4 * coeff7[4] + v5 * coeff7[5] + v6 * coeff7[6];
 			ev.y = -ev.y;
 			return ev;
-#else //_EVSM_LOG_FILTER
-			float4 f0 = conv2Taps(coeff7[0], v0, coeff7[1], v1);
-			float4 f1 = conv2Taps(coeff7[5], v5, coeff7[6], v6);
-			f0 = conv2Taps(1.0, f0, coeff7[2], v2);
-			f1 = conv2Taps(1.0, f1, coeff7[4], v4);
-			f0 = conv2Taps(1.0, f1, coeff7[3], v3);
-			return conv2Taps(1.0, f0, 1.0, f1);
-#endif //_EVSM_LOG_FILTER
+#elif defined(_EXPONENTIAL_SHADOW_MAPS)//_EXP_VARIANCE_SHADOW_MAPS
+			s0 = s0 * _EVSMExponent.x;
+			s1 = s1 * _EVSMExponent.x;
+			s2 = s2 * _EVSMExponent.x;
+			s3 = s3 * _EVSMExponent.x;
+			s4 = s4 * _EVSMExponent.x;
+			s5 = s5 * _EVSMExponent.x;
+			s6 = s6 * _EVSMExponent.x;
+#ifndef _ESM_LOG_FILTER
+			s0 = exp(s0);
+			s1 = exp(s1);
+			s2 = exp(s2);
+			s3 = exp(s3);
+			s4 = exp(s4);
+			s5 = exp(s5);
+			s6 = exp(s6);
+			return s0 * coeff7[0] + s1 * coeff7[1] + s2 * coeff7[2] + s3 * coeff7[3] + s4 * coeff7[4] + s5 * coeff7[5] + s6 * coeff7[6];;
+#else //_ESM_LOG_FILTER
+			float f0 = conv2Taps(coeff7[0], s0, coeff7[1], s1);
+			float f1 = conv2Taps(coeff7[5], s5, coeff7[6], s6);
+			f0 = conv2Taps(1.0, f0, coeff7[2], s2);
+			f1 = conv2Taps(1.0, f1, coeff7[4], s4);
+			f0 = conv2Taps(1.0, f1, coeff7[3], s3);
+			f1 = conv2Taps(1.0, f0, 1.0, f1);
+			return f1.xxxx;
+#endif //_ESM_LOG_FILTER
 #else //_EXP_VARIANCE_SHADOW_MAPS
 			float e = s0 * coeff7[0] + s1 * coeff7[1] + s2 * coeff7[2] + s3 * coeff7[3] + s4 * coeff7[4] + s5 * coeff7[5] + s6 * coeff7[6];
 			float v = s0 * s0 * coeff7[0] + s1 * s1 * coeff7[1] + s2 * s2 * coeff7[2] + s3 * s3 * coeff7[3] + s4 * s4 * coeff7[4] + s5 * s5 * coeff7[5] + s6 * s6 * coeff7[6];
@@ -121,16 +132,16 @@
 			float4 s4 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, saturate(uv + 1 * txs));
 			float4 s5 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, saturate(uv + 2 * txs));
 			float4 s6 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, saturate(uv + 3 * txs));
-#if defined(_EXP_VARIANCE_SHADOW_MAPS) && defined(_EVSM_LOG_FILTER)
+#if defined(_EXPONENTIAL_SHADOW_MAPS) && defined(_ESM_LOG_FILTER)
 			float4 f0 = conv2Taps(coeff7[0], s0, coeff7[1], s1);
 			float4 f1 = conv2Taps(coeff7[5], s5, coeff7[6], s6);
 			f0 = conv2Taps(1.0, f0, coeff7[2], s2);
 			f1 = conv2Taps(1.0, f1, coeff7[4], s4);
 			f0 = conv2Taps(1.0, f1, coeff7[3], s3);
 			return conv2Taps(1.0, f0, 1.0, f1);
-#else //defined(_EXP_VARIANCE_SHADOW_MAPS) && defined(_EVSM_LOG_FILTER)
+#else //defined(_EXPONENTIAL_SHADOW_MAPS) && defined(_ESM_LOG_FILTER)
 			return s0 * coeff7[0] + s1 * coeff7[1] + s2 * coeff7[2] + s3 * coeff7[3] + s4 * coeff7[4] + s5 * coeff7[5] + s6 * coeff7[6];
-#endif //defined(_EXP_VARIANCE_SHADOW_MAPS) && defined(_EVSM_LOG_FILTER)
+#endif //defined(_EXPONENTIAL_SHADOW_MAPS) && defined(_ESM_LOG_FILTER)
 #endif //_FIRST_FILTERING
 
 		}
@@ -152,9 +163,10 @@
 
 				#pragma vertex   Vertex
 				#pragma fragment Fragment
-				#pragma multi_compile _ _EXP_VARIANCE_SHADOW_MAPS _VARIANCE_SHADOW_MAPS
+				#pragma multi_compile _ _EXP_VARIANCE_SHADOW_MAPS _EXPONENTIAL_SHADOW_MAPS _VARIANCE_SHADOW_MAPS
 				#pragma multi_compile _ _SHADOW_MAPS_FLOAT
 				#pragma multi_compile _ _FIRST_FILTERING
+				#pragma multi_compile _ _ESM_LOG_FILTER
 				ENDHLSL
 		}
 	}

@@ -12,7 +12,7 @@ TEXTURE2D_FLOAT(_FilteredMainLightSM);
 TEXTURE2D_HALF(_FilteredMainLightSM);
 #endif
 SAMPLER(sampler_FilteredMainLightSM);
-//#define _EVSM_LOG_FILTER
+SamplerState sm_point_clamp_sampler;
 
 
 float ChebyshevUpperBound(float2 moments, float mean, float minV)
@@ -30,11 +30,6 @@ real SampleFilteredSM(float4 shadowCoord, TEXTURE2D_SHADOW_ARGS(ShadowMap, sampl
         shadowCoord.xyz /= shadowCoord.w;
 #ifdef _EXP_VARIANCE_SHADOW_MAPS
 	float4 evsm = SAMPLE_TEXTURE2D(_FilteredMainLightSM, sampler_FilteredMainLightSM, shadowCoord.xy);
-#ifdef _EVSM_LOG_FILTER
-	evsm = exp(evsm);
-	evsm.y = -evsm.y;
-#endif
-
 
 	float shadowDepth = shadowCoord.z;
 	shadowDepth = shadowDepth * 2.0f - 1.0f;
@@ -50,6 +45,22 @@ real SampleFilteredSM(float4 shadowCoord, TEXTURE2D_SHADOW_ARGS(ShadowMap, sampl
 
 	real attenuation = min(pc, nc);
 
+	attenuation = LerpWhiteTo(attenuation, shadowStrength);
+
+	// Shadow coords that fall out of the light frustum volume must always return attenuation 1.0
+	return BEYOND_SHADOW_FAR(shadowCoord) ? 1.0 : attenuation;
+#elif defined(_EXPONENTIAL_SHADOW_MAPS)
+
+	float shadowDepth = shadowCoord.z;
+	shadowDepth = shadowDepth * 2.0f - 1.0f;
+	shadowDepth = shadowDepth * _EVSMExponent.x;
+#ifdef _ESM_LOG_FILTER
+	float esm = SAMPLE_TEXTURE2D(_FilteredMainLightSM, sm_point_clamp_sampler, shadowCoord.xy).r;
+	real attenuation = exp(shadowDepth - esm);
+#else
+	float esm = SAMPLE_TEXTURE2D(_FilteredMainLightSM, sampler_FilteredMainLightSM, shadowCoord.xy).r;
+	real attenuation = exp(shadowDepth) / esm;
+#endif
 	attenuation = LerpWhiteTo(attenuation, shadowStrength);
 
 	// Shadow coords that fall out of the light frustum volume must always return attenuation 1.0

@@ -819,11 +819,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02c2a6ad87ac5484ea7f7364c54309d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _EVSMExponentPos: 5
+  _EVSMExponentPos: 45
   _EVSMExponentNeg: 10
-  _ShadowMapsType: 1
+  _ShadowMapsType: 2
   _ShadowMapPrecision: 1
   _UseMipmaps: 0
+  _LogFilterESM: 1
 --- !u!114 &1687258588
 MonoBehaviour:
   m_ObjectHideFlags: 0

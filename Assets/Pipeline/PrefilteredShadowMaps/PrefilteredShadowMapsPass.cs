@@ -7,6 +7,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
     public enum ShadowMapsType
     {
         VSM,
+        ESM,
         EVSM,
     }
 
@@ -23,12 +24,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
         public ShadowMapsType _ShadowMapsType;
         public ShadowMapsPrecision _ShadowMapsPrecision;
         public bool _UseMipmaps;
+        public bool _LogFilterESM;
 
         const string _FilterEVSM = "Filter EVSM";
         const string _ShaderPath = "Hidden/FilterShadowMaps";
 
         const string _KeywordFirstFilter = "_FIRST_FILTERING";
         const string _KeywordShadowMapsPrecision = "_SHADOW_MAPS_FLOAT";
+        const string _KeywordESMLogFilter = "_ESM_LOG_FILTER";
 
         const string _UniformEVSMExponent = "_EVSMExponent";
         const string _UniformHorizontalVertical = "_HorizontalVertical";
@@ -40,6 +43,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
         readonly Dictionary<ShadowMapsType, string> _TypeKeywords = new Dictionary<ShadowMapsType, string>()
         {
             { ShadowMapsType.VSM, "_VARIANCE_SHADOW_MAPS"},
+            { ShadowMapsType.ESM, "_EXPONENTIAL_SHADOW_MAPS"},
             { ShadowMapsType.EVSM, "_EXP_VARIANCE_SHADOW_MAPS"},
         };
 
@@ -116,6 +120,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
                     CoreUtils.SetKeyword(cmd, kvp.Value, kvp.Key == _ShadowMapsType);
                 }
 
+                CoreUtils.SetKeyword(cmd, _KeywordESMLogFilter, _LogFilterESM);
                 CoreUtils.SetKeyword(cmd, _KeywordShadowMapsPrecision, _ShadowMapsPrecision == ShadowMapsPrecision.Single);
 
                 cmd.SetGlobalVector(_UniformEVSMExponent, _EVSMExponent);
@@ -181,7 +186,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
                     _SMFormat = RenderTextureFormat.ARGBFloat;
                 }
             }
-            else
+            else if (_ShadowMapsType == ShadowMapsType.VSM)
             {
                 if (_ShadowMapsPrecision == ShadowMapsPrecision.Half)
                 {
@@ -192,10 +197,26 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
                     _SMFormat = RenderTextureFormat.RGFloat;
                 }
             }
+            else
+            {
+                if (_ShadowMapsPrecision == ShadowMapsPrecision.Half)
+                {
+                    _SMFormat = RenderTextureFormat.RHalf;
+                }
+                else
+                {
+                    _SMFormat = RenderTextureFormat.RFloat;
+                }
+            }
             baseDescriptor.depthBufferBits = 0;
             baseDescriptor.colorFormat = _SMFormat;
-            baseDescriptor.autoGenerateMips = _UseMipmaps;
-            baseDescriptor.useMipMap = _UseMipmaps;
+            bool useMipmaps = _UseMipmaps;
+            if (_ShadowMapsType == ShadowMapsType.ESM && _LogFilterESM)
+            {
+                useMipmaps = false;
+            }
+            baseDescriptor.autoGenerateMips = useMipmaps;
+            baseDescriptor.useMipMap = useMipmaps;
             _MainLightFilteredSMDescriptor = baseDescriptor;
         }
 

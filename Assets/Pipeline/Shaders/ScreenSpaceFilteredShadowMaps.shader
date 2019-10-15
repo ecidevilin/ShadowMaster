@@ -96,8 +96,9 @@ Shader "Hidden/Lightweight Render Pipeline/ScreenSpaceFilteredShadowMaps"
 
             HLSLPROGRAM
             #pragma multi_compile _ _SHADOWS_SOFT
-			#pragma multi_compile _ _EXP_VARIANCE_SHADOW_MAPS _VARIANCE_SHADOW_MAPS
+			#pragma multi_compile _ _EXP_VARIANCE_SHADOW_MAPS _EXPONENTIAL_SHADOW_MAPS _VARIANCE_SHADOW_MAPS
 			#pragma multi_compile _ _SHADOW_MAPS_FLOAT
+			#pragma multi_compile _ _ESM_LOG_FILTER
 
             #pragma vertex   Vertex
             #pragma fragment Fragment
