@@ -91,6 +91,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
             
             _MainLightFilteredSMDescriptor.width = renderingData.shadowData.mainLightShadowmapWidth;
             _MainLightFilteredSMDescriptor.height = renderingData.shadowData.mainLightShadowmapHeight;
+
+            if (renderingData.shadowData.requiresScreenSpaceShadowResolve)
+            {
+                _MainLightFilteredSMDescriptor.autoGenerateMips = false;
+                _MainLightFilteredSMDescriptor.useMipMap = false;
+            }
+
             CommandBuffer cmd = CommandBufferPool.Get(_FilterEVSM);
             if (!CheckEnabled(ref renderingData))
             {

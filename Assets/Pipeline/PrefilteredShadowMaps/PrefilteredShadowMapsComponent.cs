@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
         [SerializeField] private int _EVSMExponentNeg = 20;
         [SerializeField] private ShadowMapsType _ShadowMapsType = ShadowMapsType.VSM;
         [SerializeField] private ShadowMapsPrecision _ShadowMapPrecision = ShadowMapsPrecision.Half;
+        [Header("Mipmaps are disable when cascade is larger than one.")]
         [SerializeField] private bool _UseMipmaps = false;
         void OnEnable()
         {
