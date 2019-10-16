@@ -612,12 +612,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1083473697046016, guid: 85dfab9623c67784fa7894de63cd1604, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 108453799659117390, guid: 85dfab9623c67784fa7894de63cd1604,
         type: 3}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 85dfab9623c67784fa7894de63cd1604, type: 3}
@@ -819,10 +819,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02c2a6ad87ac5484ea7f7364c54309d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _EVSMExponentPos: 45
+  _EVSMExponentPos: 10
   _EVSMExponentNeg: 10
   _ShadowMapsType: 2
-  _ShadowMapPrecision: 1
+  _ShadowMapPrecision: 0
   _UseMipmaps: 0
   _LogFilterESM: 1
 --- !u!114 &1687258588
