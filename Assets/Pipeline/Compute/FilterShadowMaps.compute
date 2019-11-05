@@ -9,6 +9,8 @@ float4 _InputTex_TexelSize;
 
 float4 _EVSMExponent;
 
+uint _Vertical;
+
 groupshared float4 cache[64];
 
 static const float coeff7[7] = { 0.00598,0.060626,0.241843,0.383103,0.241843,0.060626,0.00598};
@@ -17,6 +19,10 @@ static const float coeff7[7] = { 0.00598,0.060626,0.241843,0.383103,0.241843,0.0
 void KernelFirstFiltering (uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID, uint3 gid : SV_GroupID)
 { 
     uint2 texCoord = uint2(clamp(id.x - 3 * gid.x, 0, _InputTex_TexelSize.z), id.y);
+    if (_Vertical == 1)
+    {
+        texCoord.xy = texCoord.yx;
+    }
     float s =  _InputTex[texCoord].x;
     s = s * 2.0f - 1.0f;
     float4 v = exp2(s * _EVSMExponent);
@@ -36,10 +42,14 @@ void KernelFirstFiltering (uint3 id : SV_DispatchThreadID, uint3 gtid : SV_Group
     _OutputTex[texCoord] = sum;
 }
 
-[numthreads(8,8,1)]
+[numthreads(64,1,1)]
 void KernelFiltering (uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID, uint3 gid : SV_GroupID)
 {
-    uint2 texCoord = uint2(clamp(id.x - 3 * gid.x, 0, _InputTex_TexelSize.z), id.y);
+    uint2 texCoord = uint2(id.y, clamp(id.x - 3 * gid.x, 0, _InputTex_TexelSize.z));
+    if (_Vertical == 1)
+    {
+        texCoord.xy = texCoord.yx;
+    }
     cache[gtid.x] = _InputTex[texCoord]; 
     GroupMemoryBarrierWithGroupSync();
     if (gtid.x < 3 || gtid.x > 60)
