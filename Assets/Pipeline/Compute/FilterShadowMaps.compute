@@ -1,0 +1,57 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel KernelFirstFiltering
+#pragma kernel KernelFiltering
+
+
+Texture2D<float4> _InputTex;
+RWTexture2D<float4> _OutputTex;
+float4 _InputTex_TexelSize;
+
+float4 _EVSMExponent;
+
+groupshared float4 cache[64];
+
+static const float coeff7[7] = { 0.00598,0.060626,0.241843,0.383103,0.241843,0.060626,0.00598};
+
+[numthreads(64,1,1)]
+void KernelFirstFiltering (uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID, uint3 gid : SV_GroupID)
+{ 
+    uint2 texCoord = uint2(clamp(id.x - 3 * gid.x, 0, _InputTex_TexelSize.z), id.y);
+    float s =  _InputTex[texCoord].x;
+    s = s * 2.0f - 1.0f;
+    float4 v = exp2(s * _EVSMExponent);
+    cache[gtid.x] = v; 
+    GroupMemoryBarrierWithGroupSync();
+    if (gtid.x < 3 || gtid.x > 60)
+    {
+        return;
+    }
+    float4 sum = 0;
+    [unroll]
+    for (int i = 0; i < 7; i++)
+    {
+        float4 p = cache[clamp(gtid.x - 3 + i, 0, 63)];
+        sum = p * coeff7[i] + sum;
+    }
+    _OutputTex[texCoord] = sum;
+}
+
+[numthreads(8,8,1)]
+void KernelFiltering (uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID, uint3 gid : SV_GroupID)
+{
+    uint2 texCoord = uint2(clamp(id.x - 3 * gid.x, 0, _InputTex_TexelSize.z), id.y);
+    cache[gtid.x] = _InputTex[texCoord]; 
+    GroupMemoryBarrierWithGroupSync();
+    if (gtid.x < 3 || gtid.x > 60)
+    {
+        return;
+    }
+    float4 sum = 0;
+    [unroll]
+    for (int i = 0; i < 7; i++)
+    {
+        float4 p = cache[clamp(gtid.x - 3 + i, 0, 63)];
+        sum = p * coeff7[i] + sum;
+    }
+    _OutputTex[texCoord] = sum;
+}
