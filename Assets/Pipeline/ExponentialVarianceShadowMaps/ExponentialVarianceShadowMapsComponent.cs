@@ -23,7 +23,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
         {
             ExponentialVarianceShadowMapsPass pass = new ExponentialVarianceShadowMapsPass();
             pass._Enabled = isActiveAndEnabled;
-            pass._EVSMExponent = new Vector2(_EVSMExponentPos, _EVSMExponentNeg);
+            pass._EVSMExponent = new Vector4(_EVSMExponentPos, -_EVSMExponentNeg, _EVSMExponentPos * 2, -_EVSMExponentNeg * 2);
             pass._ShadowMapsPrecision = _ShadowMapPrecision;
             pass._UseMipmaps = _UseMipmaps;
             pass._Compute = _FilteringCompute;
