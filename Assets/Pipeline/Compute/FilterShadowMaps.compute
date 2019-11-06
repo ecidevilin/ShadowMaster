@@ -1,6 +1,4 @@
-﻿// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel KernelFirstFiltering
-#pragma kernel KernelFiltering
+﻿#pragma kernel KernelFiltering
 
 
 Texture2D<float4> _InputTex;
@@ -10,58 +8,49 @@ float4 _InputTex_TexelSize;
 float4 _EVSMExponent;
 
 uint _Vertical;
+uint _FirstFiltering;
 
 groupshared float4 cache[64];
 
 static const float coeff7[7] = { 0.00598,0.060626,0.241843,0.383103,0.241843,0.060626,0.00598};
 
-[numthreads(64,1,1)]
-void KernelFirstFiltering (uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID, uint3 gid : SV_GroupID)
-{ 
+float4 FilterCache(uint3 gtid )
+{
+    float4 sum = 0;
+    [unroll]
+    for (int i = 0; i < 7; i++)
+    {
+        float4 p = cache[clamp(gtid.x - 3 + i, 0, 63)];
+        sum = p * coeff7[i] + sum;
+    }
+    return sum;
+}
+
+float2 GetTexCoord(uint3 id, uint3 gid)
+{
     uint2 texCoord = uint2(clamp(id.x - 3 * gid.x, 0, _InputTex_TexelSize.z), id.y);
     if (_Vertical == 1)
     {
         texCoord.xy = texCoord.yx;
     }
-    float s =  _InputTex[texCoord].x;
-    s = s * 2.0f - 1.0f;
-    float4 v = exp2(s * _EVSMExponent);
+    return texCoord;
+}
+
+[numthreads(64,1,1)]
+void KernelFiltering (uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID, uint3 gid : SV_GroupID)
+{
+    uint2 texCoord = GetTexCoord(id, gid);
+    float4 v = _InputTex[texCoord];
+    if (_FirstFiltering)
+    {
+        float s = v.x * 2.0f - 1.0f;
+        v = exp2(s * _EVSMExponent);
+    }
     cache[gtid.x] = v; 
     GroupMemoryBarrierWithGroupSync();
     if (gtid.x < 3 || gtid.x > 60)
     {
         return;
     }
-    float4 sum = 0;
-    [unroll]
-    for (int i = 0; i < 7; i++)
-    {
-        float4 p = cache[clamp(gtid.x - 3 + i, 0, 63)];
-        sum = p * coeff7[i] + sum;
-    }
-    _OutputTex[texCoord] = sum;
-}
-
-[numthreads(64,1,1)]
-void KernelFiltering (uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID, uint3 gid : SV_GroupID)
-{
-    uint2 texCoord = uint2(id.y, clamp(id.x - 3 * gid.x, 0, _InputTex_TexelSize.z));
-    if (_Vertical == 1)
-    {
-        texCoord.xy = texCoord.yx;
-    }
-    cache[gtid.x] = _InputTex[texCoord]; 
-    GroupMemoryBarrierWithGroupSync();
-    if (gtid.x < 3 || gtid.x > 60)
-    {
-        return;
-    }
-    float4 sum = 0;
-    [unroll]
-    for (int i = 0; i < 7; i++)
-    {
-        float4 p = cache[clamp(gtid.x - 3 + i, 0, 63)];
-        sum = p * coeff7[i] + sum;
-    }
-    _OutputTex[texCoord] = sum;
+    _OutputTex[texCoord] = FilterCache(gtid);
 }
