@@ -83,6 +83,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
                 cmd.ReleaseTemporaryRT(_TmpMainLightSMHandle.id);
                 _TmpMainLightSMHandle = RenderTargetHandle.CameraTarget;
             }
+            CoreUtils.SetKeyword(cmd, "_EXP_VARIANCE_SHADOW_MAPS", false);
             base.FrameCleanup(cmd);
         }
         private bool CheckEnabled(ref RenderingData renderingData)
@@ -143,7 +144,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
                 RenderTargetIdentifier srti = _TmpMainLightSMHandle.Identifier();
                 RenderTargetIdentifier drti = _FilteredMainLightSMHandle.Identifier();
 
-                int tgx = (int)((w + 58 - 1) / 58);
+                int tgx = (int)((w + 121) / 122);
 
                 cmd.SetComputeIntParam(_Compute, _Compute_Vertical, 0);
                 cmd.SetComputeTextureParam(_Compute, _KernelFirstFiltering, _Compute_OutputTex, srti);

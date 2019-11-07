@@ -1,6 +1,8 @@
 ﻿#pragma kernel KernelFirstFiltering
 #pragma kernel KernelFiltering
 
+#define NUM_THREADS 128
+
 Texture2D<float4> _MainLightShadowmapTexture;
 Texture2D<float4> _InputTex;
 RWTexture2D<float4> _OutputTex;
@@ -10,7 +12,7 @@ float4 _EVSMExponent;
 
 uint _Vertical;
 
-groupshared float4 cache[64];
+groupshared float4 cache[NUM_THREADS];
 
 static const float coeff7[7] = { 0.00598,0.060626,0.241843,0.383103,0.241843,0.060626,0.00598};
 
@@ -20,7 +22,7 @@ float4 FilterCache(uint3 gtid )
     [unroll]
     for (int i = 0; i < 7; i++)
     {
-        float4 p = cache[clamp(gtid.x - 3 + i, 0, 63)];
+        float4 p = cache[clamp(gtid.x - 3 + i, 0, NUM_THREADS - 1)];
         sum = p * coeff7[i] + sum;
     }
     return sum;
@@ -36,7 +38,7 @@ float2 GetTexCoord(uint3 id, uint3 gid)
     return texCoord;
 }
 
-[numthreads(64,1,1)]
+[numthreads(NUM_THREADS,1,1)]
 void KernelFirstFiltering(uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID, uint3 gid : SV_GroupID)
 {
     uint2 texCoord = GetTexCoord(id, gid);
@@ -48,14 +50,14 @@ void KernelFirstFiltering(uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupT
 
     cache[gtid.x] = v; 
     GroupMemoryBarrierWithGroupSync();
-    if (gtid.x < 3 || gtid.x > 60)
+    if (gtid.x < 3 || gtid.x > NUM_THREADS - 4 || texCoord.x >= _InputTex_TexelSize.z || texCoord.y >= _InputTex_TexelSize.w)
     {
         return;
     }
     _OutputTex[texCoord.xy] = FilterCache(gtid);
 }
 
-[numthreads(64,1,1)]
+[numthreads(NUM_THREADS,1,1)]
 void KernelFiltering (uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID, uint3 gid : SV_GroupID)
 {
     uint2 texCoord = GetTexCoord(id, gid);
@@ -65,7 +67,7 @@ void KernelFiltering (uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupThrea
 
     cache[gtid.x] = v; 
     GroupMemoryBarrierWithGroupSync();
-    if (gtid.x < 3 || gtid.x > 60)
+    if (gtid.x < 3 || gtid.x > NUM_THREADS - 4 || texCoord.x >= _InputTex_TexelSize.z || texCoord.y >= _InputTex_TexelSize.w)
     {
         return;
     }
