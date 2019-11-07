@@ -22,10 +22,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
         const string _Compute_InputTex_TexelSize = "_InputTex_TexelSize";
         const string _Compute_EVSMExponent = "_EVSMExponent";
         const string _Compute_Vertical = "_Vertical";
-        const string _Compute_FirstFiltering = "_FirstFiltering";
 
         const string _KernelFilteringName = "KernelFiltering";
         private int _KernelFiltering;
+        const string _KernelFirstFilteringName = "KernelFirstFiltering";
+        private int _KernelFirstFiltering;
         private uint _NumThreadX;
         private uint _NumThreadY;
         private uint _NumThreadZ;
@@ -49,6 +50,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
                 return;
             }
             _KernelFiltering = _Compute.FindKernel(_KernelFilteringName);
+            _KernelFirstFiltering = _Compute.FindKernel(_KernelFirstFilteringName);
             _Compute.GetKernelThreadGroupSizes(_KernelFiltering, out _NumThreadX, out _NumThreadY, out _NumThreadZ);
 
             if (_ShadowMapsPrecision == ShadowMapsPrecision.Half)
@@ -144,14 +146,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
                 int tgx = (int)((w + 58 - 1) / 58);
 
                 cmd.SetComputeIntParam(_Compute, _Compute_Vertical, 0);
-                cmd.SetComputeIntParam(_Compute, _Compute_FirstFiltering, 1);
-                cmd.SetComputeTextureParam(_Compute, _KernelFiltering, _Compute_OutputTex, srti);
-                cmd.DispatchCompute(_Compute, _KernelFiltering, tgx, h, 1);
+                cmd.SetComputeTextureParam(_Compute, _KernelFirstFiltering, _Compute_OutputTex, srti);
+                cmd.DispatchCompute(_Compute, _KernelFirstFiltering, tgx, h, 1);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-
-                cmd.SetComputeIntParam(_Compute, _Compute_FirstFiltering, 0);
 
                 cmd.SetComputeTextureParam(_Compute, _KernelFiltering, _Compute_InputTex, srti);
                 cmd.SetComputeTextureParam(_Compute, _KernelFiltering, _Compute_OutputTex, drti);
@@ -162,6 +161,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
                 cmd.Clear();
             }
             CoreUtils.SetKeyword(cmd, "_EXP_VARIANCE_SHADOW_MAPS", true);
+            cmd.SetGlobalVector(_Compute_EVSMExponent, _EVSMExponent);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

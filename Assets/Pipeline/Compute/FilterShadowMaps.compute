@@ -1,4 +1,5 @@
-﻿#pragma kernel KernelFiltering
+﻿#pragma kernel KernelFirstFiltering
+#pragma kernel KernelFiltering
 
 Texture2D<float4> _MainLightShadowmapTexture;
 Texture2D<float4> _InputTex;
@@ -8,7 +9,6 @@ float4 _InputTex_TexelSize;
 float4 _EVSMExponent;
 
 uint _Vertical;
-uint _FirstFiltering;
 
 groupshared float4 cache[64];
 
@@ -28,7 +28,7 @@ float4 FilterCache(uint3 gtid )
 
 float2 GetTexCoord(uint3 id, uint3 gid)
 {
-    uint2 texCoord = uint2(clamp(id.x - 3 * gid.x - 3, 0, _InputTex_TexelSize.z), id.y);
+    uint2 texCoord = uint2(clamp(id.x - 6 * gid.x - 3, 0, _InputTex_TexelSize.z), id.y);
     if (_Vertical == 1)
     {
         texCoord.xy = texCoord.yx;
@@ -37,28 +37,37 @@ float2 GetTexCoord(uint3 id, uint3 gid)
 }
 
 [numthreads(64,1,1)]
-void KernelFiltering (uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID, uint3 gid : SV_GroupID)
+void KernelFirstFiltering(uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID, uint3 gid : SV_GroupID)
 {
     uint2 texCoord = GetTexCoord(id, gid);
     float4 v = float4(0,0,0,0);
-    if (_FirstFiltering)
-    {
-        float s = _MainLightShadowmapTexture[texCoord].x * 2.0f - 1.0f;
-        v = exp2(s * _EVSMExponent);
-    }
-    else
-    {
-        v = _InputTex[texCoord];
-    }
+
+    float s = _MainLightShadowmapTexture[texCoord].x * 2.0f - 1.0f;
+    v = exp2(s * _EVSMExponent);
+    v.y = -v.y;
+
     cache[gtid.x] = v; 
     GroupMemoryBarrierWithGroupSync();
     if (gtid.x < 3 || gtid.x > 60)
     {
         return;
     }
-    if (_Vertical == 1)
+    _OutputTex[texCoord.xy] = FilterCache(gtid);
+}
+
+[numthreads(64,1,1)]
+void KernelFiltering (uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID, uint3 gid : SV_GroupID)
+{
+    uint2 texCoord = GetTexCoord(id, gid);
+    float4 v = float4(0,0,0,0);
+
+    v = _InputTex[texCoord];
+
+    cache[gtid.x] = v; 
+    GroupMemoryBarrierWithGroupSync();
+    if (gtid.x < 3 || gtid.x > 60)
     {
-        id.xy = id.yx;
+        return;
     }
-    _OutputTex[id.xy] = FilterCache(gtid);
+    _OutputTex[texCoord.xy] = FilterCache(gtid);
 }
