@@ -50,10 +50,12 @@ void KernelFirstFiltering(uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupT
 
     cache[gtid.x] = v; 
     GroupMemoryBarrierWithGroupSync();
-    if (gtid.x < 3 || gtid.x > NUM_THREADS - 4 || texCoord.x >= _InputTex_TexelSize.z || texCoord.y >= _InputTex_TexelSize.w)
-    {
-        return;
-    }
+	int4 ts = int4(-3, NUM_THREADS - 4, _InputTex_TexelSize.zw - 1);
+	int4 tc = int4(0 - gtid.x, gtid.x, texCoord.xy);
+	if (any(tc > ts))
+	{
+		return;
+	}
     _OutputTex[texCoord.xy] = FilterCache(gtid);
 }
 
@@ -67,7 +69,9 @@ void KernelFiltering (uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupThrea
 
     cache[gtid.x] = v; 
     GroupMemoryBarrierWithGroupSync();
-    if (gtid.x < 3 || gtid.x > NUM_THREADS - 4 || texCoord.x >= _InputTex_TexelSize.z || texCoord.y >= _InputTex_TexelSize.w)
+	int4 ts = int4(-3, NUM_THREADS - 4, _InputTex_TexelSize.zw - 1);
+	int4 tc = int4(0-gtid.x, gtid.x, texCoord.xy);
+    if (any(tc > ts))
     {
         return;
     }

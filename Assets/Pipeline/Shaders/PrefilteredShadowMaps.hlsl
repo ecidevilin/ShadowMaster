@@ -33,8 +33,8 @@ real SampleFilteredSM(float4 shadowCoord, TEXTURE2D_SHADOW_ARGS(ShadowMap, sampl
 
 	float shadowDepth = shadowCoord.z;
 	shadowDepth = shadowDepth * 2.0f - 1.0f;
-	float2 warpedDepth = float2(shadowDepth, -shadowDepth);
-	warpedDepth = exp(warpedDepth * _EVSMExponent);
+	float2 warpedDepth = shadowDepth;
+	warpedDepth = exp2(warpedDepth * _EVSMExponent);
 	warpedDepth.y = -warpedDepth.y;
 
 	float2 depthScale = 0.000001f * _EVSMExponent * warpedDepth;
