@@ -70,7 +70,7 @@ void KernelFiltering (uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupThrea
     cache[gtid.x] = v; 
     GroupMemoryBarrierWithGroupSync();
 	int4 ts = int4(-3, NUM_THREADS - 4, _InputTex_TexelSize.zw - 1);
-	int4 tc = int4(0-gtid.x, gtid.x, texCoord.xy);
+	int4 tc = int4(0 - gtid.x, gtid.x, texCoord.xy);
     if (any(tc > ts))
     {
         return;
