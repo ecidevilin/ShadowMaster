@@ -19,7 +19,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
 
         //const string _Compute_InputTex = "_InputTex";
         const string _Compute_OutputTex = "_OutputTex";
-        const string _Compute_InputTex_TexelSize = "_InputTex_TexelSize";
+        const string _Compute_TexelSize = "_TexelSize";
         const string _Compute_EVSMExponent = "_EVSMExponent";
         //const string _Compute_Vertical = "_Vertical";
 
@@ -138,7 +138,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline.Extension
             {
 
                 cmd.SetComputeVectorParam(_Compute, _Compute_EVSMExponent, _EVSMExponent);
-                cmd.SetComputeVectorParam(_Compute, _Compute_InputTex_TexelSize, new Vector4(1.0f / w, 1.0f / h, w, h));
+                cmd.SetComputeVectorParam(_Compute, _Compute_TexelSize, new Vector2(w, h));
                 cmd.GetTemporaryRT(_FilteredMainLightSMHandle.id, _MainLightFilteredSMDescriptor, FilterMode.Bilinear);
                 //cmd.GetTemporaryRT(_TmpMainLightSMHandle.id, _MainLightFilteredSMDescriptor, FilterMode.Bilinear);
                 //RenderTargetIdentifier srti = _TmpMainLightSMHandle.Identifier();

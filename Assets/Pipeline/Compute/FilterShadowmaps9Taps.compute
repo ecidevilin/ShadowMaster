@@ -5,10 +5,10 @@
 
 Texture2D<float4> _MainLightShadowmapTexture;
 RWTexture2D<float4> _OutputTex;
-float4 _InputTex_TexelSize;
+uint2 _TexelSize;
 
 float4 _EVSMExponent;
-groupshared float4 cache[NUM_THREADS_X][NUM_THREADS_Y];
+groupshared float cache[NUM_THREADS_X][NUM_THREADS_Y];
 
 static const float coeff3x3[3][3] = {
 	{0.077847,0.123317,0.077847},
@@ -19,12 +19,11 @@ static const float coeff3x3[3][3] = {
 void KernelFiltering9Taps(uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID, uint3 gid : SV_GroupID)
 {
 	uint2 texCoord = id.xy - 2 * gid.xy - 1;
+	texCoord = clamp(texCoord, 0, _TexelSize);
 
 	float s = _MainLightShadowmapTexture[texCoord].x * 2.0f - 1.0f;
-	float4 v = exp2(s * _EVSMExponent);
-	v.y = -v.y;
 
-	cache[gtid.x][gtid.y] = v;
+	cache[gtid.x][gtid.y] = s;
 	GroupMemoryBarrierWithGroupSync();
 	if (gtid.x < 1 || gtid.x >= NUM_THREADS_X - 1 || gtid.y < 1 || gtid.y >= NUM_THREADS_X - 1)
 	{
@@ -37,8 +36,10 @@ void KernelFiltering9Taps(uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupT
 		[unroll]
 		for (int j = 0; j < 3; j++)
 		{
-			float4 p = cache[gtid.x + i - 1][gtid.y + j - 1];
-			sum += p * coeff3x3[i][j];
+			float4 s = cache[gtid.x + i - 1][gtid.y + j - 1];
+			float4 v = exp2(s * _EVSMExponent);
+			v.y = -v.y;
+			sum += v * coeff3x3[i][j];
 		}
 	}
 	_OutputTex[texCoord.xy] = sum;

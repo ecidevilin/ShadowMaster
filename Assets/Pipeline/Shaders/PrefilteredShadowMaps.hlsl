@@ -4,7 +4,7 @@
 #include "Packages/com.unity.render-pipelines.lightweight/ShaderLibrary/Shadows.hlsl"
 
 CBUFFER_START(_EVSM)
-float2 _EVSMExponent;
+float4 _EVSMExponent;
 CBUFFER_END
 #ifdef _SHADOW_MAPS_FLOAT
 TEXTURE2D_FLOAT(_FilteredMainLightSM);
@@ -31,13 +31,11 @@ real SampleFilteredSM(float4 shadowCoord, TEXTURE2D_SHADOW_ARGS(ShadowMap, sampl
 #ifdef _EXP_VARIANCE_SHADOW_MAPS
 	float4 evsm = SAMPLE_TEXTURE2D(_FilteredMainLightSM, sampler_FilteredMainLightSM, shadowCoord.xy);
 
-	float shadowDepth = shadowCoord.z;
-	shadowDepth = shadowDepth * 2.0f - 1.0f;
-	float2 warpedDepth = shadowDepth;
-	warpedDepth = exp2(warpedDepth * _EVSMExponent);
+	float shadowDepth = shadowCoord.z * 2.0f - 1.0f;
+	float2 warpedDepth = exp2(shadowDepth * _EVSMExponent.xy);
 	warpedDepth.y = -warpedDepth.y;
 
-	float2 depthScale = 0.000001f * _EVSMExponent * warpedDepth;
+	float2 depthScale = 0.000001f * _EVSMExponent.xy * warpedDepth;
 	float2 minVariance = depthScale * depthScale;
 
 	float pc = ChebyshevUpperBound(evsm.xz, warpedDepth.x, minVariance.x);
