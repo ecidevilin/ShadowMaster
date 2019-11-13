@@ -14,6 +14,16 @@ TEXTURE2D_HALF(_FilteredMainLightSM);
 SAMPLER(sampler_FilteredMainLightSM);
 SamplerState sm_point_clamp_sampler;
 
+float ChebyshevUpperBoundEVSM(float4 evsm, float2 depth, float2 minV)
+{
+	float4 rv = float4(evsm.xy * evsm.xy, evsm.xy);
+	float4 lv = float4(evsm.zw, depth);
+	float4 v = lv - rv;
+	v.xy = max(v.xy, minV);
+	float2 p = v.xy / (v.xy + v.zw * v.zw);
+	float2 r = max(sign(v.zw), p);
+	return min(r.x, r.y);
+}
 
 float ChebyshevUpperBound(float2 moments, float mean, float minV)
 {
@@ -35,14 +45,10 @@ real SampleFilteredSM(float4 shadowCoord, TEXTURE2D_SHADOW_ARGS(ShadowMap, sampl
 	float2 warpedDepth = exp2(shadowDepth * _EVSMExponent.xy);
 	warpedDepth.y = -warpedDepth.y;
 
-	float2 depthScale = 0.000001f * _EVSMExponent.xy * warpedDepth;
-	float2 minVariance = depthScale * depthScale;
-
-	float pc = ChebyshevUpperBound(evsm.xz, warpedDepth.x, minVariance.x);
-	float nc = ChebyshevUpperBound(evsm.yw, warpedDepth.y, minVariance.y);
-
-	real attenuation = min(pc, nc);
-
+	// float2 depthScale = 0.000001f * _EVSMExponent.xy * warpedDepth;
+	// float2 minVariance = depthScale * depthScale;
+	// real attenuation = ChebyshevUpperBoundEVSM(evsm, warpedDepth, minVariance);
+	real attenuation = ChebyshevUpperBoundEVSM(evsm, warpedDepth, 0);
 	attenuation = LerpWhiteTo(attenuation, shadowStrength);
 
 	// Shadow coords that fall out of the light frustum volume must always return attenuation 1.0

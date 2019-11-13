@@ -36,7 +36,7 @@ void KernelFiltering9Taps(uint3 id : SV_DispatchThreadID, uint3 gtid : SV_GroupT
 		[unroll]
 		for (int j = 0; j < 3; j++)
 		{
-			float4 s = cache[gtid.x + i - 1][gtid.y + j - 1];
+			float s = cache[gtid.x + i - 1][gtid.y + j - 1];
 			float4 v = exp2(s * _EVSMExponent);
 			v.y = -v.y;
 			sum += v * coeff3x3[i][j];
