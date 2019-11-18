@@ -16,8 +16,8 @@ SamplerState sm_point_clamp_sampler;
 
 float ChebyshevUpperBoundEVSM(float4 evsm, float2 depth, float2 minV)
 {
-	float4 rv = float4(evsm.xy * evsm.xy, evsm.xy);
-	float4 lv = float4(evsm.zw, depth);
+	float4 rv = float4(evsm.xy * evsm.xy, evsm.x, depth.y);
+	float4 lv = float4(evsm.zw, depth.x, evsm.y);
 	float4 v = lv - rv;
 	v.xy = max(v.xy, minV);
 	float2 p = v.xy / (v.xy + v.zw * v.zw);
@@ -43,7 +43,6 @@ real SampleFilteredSM(float4 shadowCoord, TEXTURE2D_SHADOW_ARGS(ShadowMap, sampl
 
 	float shadowDepth = shadowCoord.z * 2.0f - 1.0f;
 	float2 warpedDepth = exp2(shadowDepth * _EVSMExponent.xy);
-	warpedDepth.y = -warpedDepth.y;
 
 	// float2 depthScale = 0.000001f * _EVSMExponent.xy * warpedDepth;
 	// float2 minVariance = depthScale * depthScale;
